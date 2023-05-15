@@ -1,0 +1,204 @@
+Description: "Custom VPC for TAP multi-profile installation"
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: tap-workshop-multicluster-vpc
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPC
+      GroupDescription: "Enables SSH access to nodes."
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: tap-multicluster-igw
+  PublicSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: us-west-1b
+      CidrBlock: 10.0.0.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: tap-public-subnet-b
+  PublicSubnetC:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: us-west-1c
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: tap-public-subnet-c
+  PublicSubnetBRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnetB
+  PublicSubnetCRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnetC
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: tap-public-route-table
+  DefaultPublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      GatewayId: !Ref InternetGateway
+      DestinationCidrBlock: 0.0.0.0/0
+  ECRImages:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: tap-images
+  ECRBuildService:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: tap-build-service
+  ECRPlatform:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: tanzu-application-platform
+  EKSClusterView:
+    Type: AWS::EKS::Cluster
+    Properties:
+      Name: tap-view
+      Version: "1.23"
+      RoleArn: "arn:aws:iam::964978768106:role/vmware-eks-role"
+      ResourcesVpcConfig:
+        SecurityGroupIds:
+          - !Ref InstanceSecurityGroup
+        SubnetIds:
+          - !Ref PublicSubnetB
+          - !Ref PublicSubnetC
+  EKSClusterBuild:
+    Type: AWS::EKS::Cluster
+    Properties:
+      Name: tap-build
+      Version: "1.23"
+      RoleArn: "arn:aws:iam::964978768106:role/vmware-eks-role"
+      ResourcesVpcConfig:
+        SecurityGroupIds:
+          - !Ref InstanceSecurityGroup
+        SubnetIds:
+          - !Ref PublicSubnetB
+          - !Ref PublicSubnetC
+  EKSClusterRun:
+    Type: AWS::EKS::Cluster
+    Properties:
+      Name: tap-run
+      Version: "1.23"
+      RoleArn: "arn:aws:iam::964978768106:role/vmware-eks-role"
+      ResourcesVpcConfig:
+        SecurityGroupIds:
+          - !Ref InstanceSecurityGroup
+        SubnetIds:
+          - !Ref PublicSubnetB
+          - !Ref PublicSubnetC
+  EKSClusterIterate:
+    Type: AWS::EKS::Cluster
+    Properties:
+      Name: tap-iterate
+      Version: "1.23"
+      RoleArn: "arn:aws:iam::964978768106:role/vmware-eks-role"
+      ResourcesVpcConfig:
+        SecurityGroupIds:
+          - !Ref InstanceSecurityGroup
+        SubnetIds:
+          - !Ref PublicSubnetB
+          - !Ref PublicSubnetC
+  EKSNodeGroupView:
+    Type: 'AWS::EKS::Nodegroup'
+    DependsOn: EKSClusterView
+    Properties:
+      NodegroupName: tap-view-node-group
+      ClusterName: tap-view
+      NodeRole: 'arn:aws:iam::964978768106:role/vmware-nodegroup-role'
+      InstanceTypes: 
+        - m5.2xlarge
+      DiskSize: 80
+      ScalingConfig:
+        MinSize: 2
+        DesiredSize: 2
+        MaxSize: 3
+      Subnets:
+        - !Ref PublicSubnetB
+        - !Ref PublicSubnetC
+  EKSNodeGroupBuild:
+    Type: 'AWS::EKS::Nodegroup'
+    DependsOn: EKSClusterBuild
+    Properties:
+      NodegroupName: tap-build-node-group
+      ClusterName: tap-build
+      NodeRole: 'arn:aws:iam::964978768106:role/vmware-nodegroup-role'
+      InstanceTypes: 
+        - m5.2xlarge
+      DiskSize: 80
+      ScalingConfig:
+        MinSize: 2
+        DesiredSize: 2
+        MaxSize: 3
+      Subnets:
+        - !Ref PublicSubnetB
+        - !Ref PublicSubnetC
+  EKSNodeGroupRun:
+    Type: 'AWS::EKS::Nodegroup'
+    DependsOn: EKSClusterRun
+    Properties:
+      NodegroupName: tap-run-node-group
+      ClusterName: tap-run
+      NodeRole: 'arn:aws:iam::964978768106:role/vmware-nodegroup-role'
+      InstanceTypes: 
+        - m5.2xlarge
+      DiskSize: 80
+      ScalingConfig:
+        MinSize: 2
+        DesiredSize: 2
+        MaxSize: 3
+      Subnets:
+        - !Ref PublicSubnetB
+        - !Ref PublicSubnetC
+  EKSNodeGroupIterate:
+    Type: 'AWS::EKS::Nodegroup'
+    DependsOn: EKSClusterIterate
+    Properties:
+      NodegroupName: tap-iterate-node-group
+      ClusterName: tap-iterate
+      NodeRole: 'arn:aws:iam::964978768106:role/vmware-nodegroup-role'
+      InstanceTypes: 
+        - m5.2xlarge
+      DiskSize: 80
+      ScalingConfig:
+        MinSize: 2
+        DesiredSize: 2
+        MaxSize: 3
+      Subnets:
+        - !Ref PublicSubnetB
+        - !Ref PublicSubnetC

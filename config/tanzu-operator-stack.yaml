@@ -1,0 +1,36 @@
+Description: "Creates a Linux operator machine."
+Mappings:
+  Images:
+    us-east-1:
+      Id: "ami-04505e74c0741db8d"
+    us-east-2:
+      Id: "ami-0fb653ca2d3203ac1"
+    us-west-1:
+      Id: "ami-01f87c43e618bf8f0"
+    us-west-2:
+      Id: "ami-017fecd1353bcc96e"
+Resources:
+  OperatorInstance:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      ImageId: !FindInMap
+        - Images
+        - !Ref AWS::Region
+        - Id
+      InstanceType: "t3.large"
+      KeyName: !Sub "tanzu-operations-${AWS::Region}"
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: 50
+            DeleteOnTermination: true
+      SecurityGroupIds:
+        - !Sub "tanzu-operations-${AWS::Region}"
+      Tags:
+        - Key: "Name"
+          Value: !Sub "tanzu-operations-${AWS::Region}"
+Outputs:
+  InstanceId:
+    Value: !Ref OperatorInstance
+  PublicDnsName:
+    Value: !GetAtt OperatorInstance.PublicDnsName
