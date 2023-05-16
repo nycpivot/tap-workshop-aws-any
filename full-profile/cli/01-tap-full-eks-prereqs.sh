@@ -24,7 +24,10 @@ export PIVNET_TOKEN=$(aws secretsmanager get-secret-value --secret-id tap-worksh
 token=$(curl -X POST https://network.pivotal.io/api/v2/authentication/access_tokens -d '{"refresh_token":"'$PIVNET_TOKEN'"}')
 access_token=$(echo $token | jq -r .access_token)
 
-curl -i -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer $access_token" -X GET https://network.pivotal.io/api/v2/authentication
+curl -i -H "Accept: application/json" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $access_token" \
+    -X GET https://network.pivotal.io/api/v2/authentication
 
 
 # 1. CREATE CLUSTER
@@ -333,7 +336,8 @@ export INSTALL_BUNDLE=registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster
 rm -rf $HOME/tanzu
 mkdir $HOME/tanzu
 
-wget https://network.pivotal.io/api/v2/products/tanzu-application-platform/releases/1295414/product_files/1478717/download --header="Authorization: Bearer $access_token" -O $HOME/tanzu/$CLI_FILENAME
+wget https://network.pivotal.io/api/v2/products/tanzu-application-platform/releases/1295414/product_files/1478717/download \
+    --header="Authorization: Bearer $access_token" -O $HOME/tanzu/$CLI_FILENAME
 tar -xvf $HOME/tanzu/$CLI_FILENAME -C $HOME/tanzu
 
 cd tanzu
@@ -350,7 +354,8 @@ cd $HOME
 rm -rf $HOME/tanzu-cluster-essentials
 mkdir $HOME/tanzu-cluster-essentials
 
-wget https://network.pivotal.io/api/v2/products/tanzu-cluster-essentials/releases/1275537/product_files/1460876/download --header="Authorization: Bearer $access_token" -O $HOME/tanzu-cluster-essentials/$ESSENTIALS_FILENAME
+wget https://network.pivotal.io/api/v2/products/tanzu-cluster-essentials/releases/1275537/product_files/1460876/download \
+    --header="Authorization: Bearer $access_token" -O $HOME/tanzu-cluster-essentials/$ESSENTIALS_FILENAME
 tar -xvf $HOME/tanzu-cluster-essentials/$ESSENTIALS_FILENAME -C $HOME/tanzu-cluster-essentials
 
 cd $HOME/tanzu-cluster-essentials
@@ -361,8 +366,6 @@ sudo cp $HOME/tanzu-cluster-essentials/kapp /usr/local/bin/kapp
 sudo cp $HOME/tanzu-cluster-essentials/imgpkg /usr/local/bin/imgpkg
 
 cd $HOME
-
-docker login $IMGPKG_REGISTRY_HOSTNAME_0 -u $IMGPKG_REGISTRY_USERNAME_0 -p $IMGPKG_REGISTRY_PASSWORD_0
 
 rm $HOME/tanzu/$CLI_FILENAME
 rm $HOME/tanzu-cluster-essentials/$ESSENTIALS_FILENAME
@@ -383,12 +386,16 @@ export IMGPKG_REGISTRY_USERNAME_1=tanzuapplicationregistry
 export IMGPKG_REGISTRY_PASSWORD_1=$acr_secret
 export INSTALL_REPO=tanzu-application-platform/tap-packages
 
-imgpkg copy --concurrency 1 -b $IMGPKG_REGISTRY_HOSTNAME_0/tanzu-application-platform/tap-packages:${TAP_VERSION} --to-repo ${IMGPKG_REGISTRY_HOSTNAME_1}/$INSTALL_REPO
+docker login $IMGPKG_REGISTRY_HOSTNAME_0 -u $IMGPKG_REGISTRY_USERNAME_0 -p $IMGPKG_REGISTRY_PASSWORD_0
+
+imgpkg copy --concurrency 1 -b $IMGPKG_REGISTRY_HOSTNAME_0/tanzu-application-platform/tap-packages:${TAP_VERSION} \
+    --to-repo ${IMGPKG_REGISTRY_HOSTNAME_1}/$INSTALL_REPO
 
 kubectl create ns tap-install
 
 tanzu secret registry add tap-registry \
-  --username $IMGPKG_REGISTRY_USERNAME_1 --password $IMGPKG_REGISTRY_PASSWORD_1 \
+  --username $IMGPKG_REGISTRY_USERNAME_1 \
+  --password $IMGPKG_REGISTRY_PASSWORD_1 \
   --server $IMGPKG_REGISTRY_HOSTNAME_1 \
   --export-to-all-namespaces --yes --namespace tap-install
 
