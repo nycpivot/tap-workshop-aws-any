@@ -2,8 +2,6 @@
 
 TAP_VERSION=1.5.2-build.1
 GIT_CATALOG_REPOSITORY=tanzu-application-platform
-INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
-TARGET_TBS_REPO=tap-build-service
 
 FULL_DOMAIN=$(cat /tmp/tap-full-domain)
 
@@ -15,6 +13,13 @@ access_token=$(echo ${token} | jq -r .access_token)
 
 curl -i -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer $access_token" -X GET https://network.pivotal.io/api/v2/authentication
 
+ecr_secret=$(aws ecr get-login-password --region $AWS_REGION)
+
+export INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
+export IMGPKG_REGISTRY_HOSTNAME_1=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+export IMGPKG_REGISTRY_USERNAME_1=AWS
+export IMGPKG_REGISTRY_PASSWORD_1=$ecr_secret
+export TARGET_TBS_REPO=tap-build-service
 
 #RESET AN EXISTING INSTALLATION
 tanzu package installed delete ootb-supply-chain-testing-scanning -n tap-install --yes
@@ -36,11 +41,12 @@ shared:
 supply_chain: basic
 ootb_supply_chain_basic:
   registry:
-    server: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+    server: $IMGPKG_REGISTRY_HOSTNAME_1
     repository: "tanzu-application-platform"
 buildservice:
-  kp_default_repository: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$TARGET_TBS_REPO
-  kp_default_repository_aws_iam_role_arn: "arn:aws:iam::$AWS_ACCOUNT_ID:role/$TARGET_TBS_REPO"
+  kp_default_repository: $IMGPKG_REGISTRY_HOSTNAME_1/$TARGET_TBS_REPO
+  kp_default_repository_username: $IMGPKG_REGISTRY_USERNAME_1
+  kp_default_repository_password: $IMGPKG_REGISTRY_PASSWORD_1
 contour:
   envoy:
     service:
@@ -81,9 +87,9 @@ echo "<<< CREATING DEVELOPER NAMESPACE >>>"
 echo
 
 tanzu secret registry add registry-credentials \
-  --server $INSTALL_REGISTRY_HOSTNAME \
-  --username "AWS" \
-  --password "$INSTALL_REGISTRY_HOSTNAME" \
+  --server $IMGPKG_REGISTRY_HOSTNAME_1 \
+  --username $IMGPKG_REGISTRY_USERNAME_1 \
+  --password $IMGPKG_REGISTRY_PASSWORD_1 \
   --namespace default
 
 rm rbac-dev.yaml
