@@ -6,20 +6,21 @@ GIT_CATALOG_REPOSITORY=tanzu-application-platform
 FULL_DOMAIN=$(cat /tmp/tap-full-domain)
 
 # 1. CAPTURE PIVNET SECRETS
-pivnet_password=$(aws secretsmanager get-secret-value --secret-id tap-workshop | jq -r .SecretString | jq -r .\"pivnet-password\")
-pivnet_token=$(aws secretsmanager get-secret-value --secret-id tap-workshop | jq -r .SecretString | jq -r .\"pivnet-token\")
+export PIVNET_USERNAME=$(aws secretsmanager get-secret-value --secret-id tap-workshop | jq -r .SecretString | jq -r .\"pivnet-username\")
+export PIVNET_PASSWORD=$(aws secretsmanager get-secret-value --secret-id tap-workshop | jq -r .SecretString | jq -r .\"pivnet-password\")
+export PIVNET_TOKEN=$(aws secretsmanager get-secret-value --secret-id tap-workshop | jq -r .SecretString | jq -r .\"pivnet-token\")
+
 token=$(curl -X POST https://network.pivotal.io/api/v2/authentication/access_tokens -d '{"refresh_token":"'$pivnet_token'"}')
 access_token=$(echo ${token} | jq -r .access_token)
 
 curl -i -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer $access_token" -X GET https://network.pivotal.io/api/v2/authentication
 
-ecr_secret=$(aws ecr get-login-password --region $AWS_REGION)
+acr_secret=$(az acr credential show --name tanzuapplicationregistry | jq -r ".passwords[0].value")
 
 export INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
-export IMGPKG_REGISTRY_HOSTNAME_1=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
-export IMGPKG_REGISTRY_USERNAME_1=AWS
-export IMGPKG_REGISTRY_PASSWORD_1=$ecr_secret
-export TARGET_TBS_REPO=tap-build-service
+export IMGPKG_REGISTRY_HOSTNAME_1=tanzuapplicationregistry.azurecr.io
+export IMGPKG_REGISTRY_USERNAME_1=tanzuapplicationregistry
+export IMGPKG_REGISTRY_PASSWORD_1=$acr_secret
 
 #RESET AN EXISTING INSTALLATION
 tanzu package installed delete ootb-supply-chain-testing-scanning -n tap-install --yes
@@ -44,7 +45,7 @@ ootb_supply_chain_basic:
     server: $IMGPKG_REGISTRY_HOSTNAME_1
     repository: "tanzu-application-platform"
 buildservice:
-  kp_default_repository: $IMGPKG_REGISTRY_HOSTNAME_1/$TARGET_TBS_REPO
+  kp_default_repository: $IMGPKG_REGISTRY_HOSTNAME_1/build-service
   kp_default_repository_username: $IMGPKG_REGISTRY_USERNAME_1
   kp_default_repository_password: $IMGPKG_REGISTRY_PASSWORD_1
 contour:
@@ -95,11 +96,24 @@ tanzu secret registry add registry-credentials \
 rm rbac-dev.yaml
 cat <<EOF | tee rbac-dev.yaml
 apiVersion: v1
+kind: Secret
+metadata:
+  name: tap-registry
+  annotations:
+    secretgen.carvel.dev/image-pull-secret: ""
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: e30K
+---
+apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: default
-  annotations:
-    eks.amazonaws.com/role-arn: "arn:aws:iam::$AWS_ACCOUNT_ID:role/tap-workload"
+secrets:
+  - name: registry-credentials
+imagePullSecrets:
+  - name: registry-credentials
+  - name: tap-registry
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding

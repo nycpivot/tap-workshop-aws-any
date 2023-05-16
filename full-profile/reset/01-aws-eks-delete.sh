@@ -12,14 +12,12 @@ aws iam detach-role-policy \
 
 aws iam delete-role --role-name ${rolename}
 
-
-#DELETE IAM ECR ROLES
+#DELETE IAM ECR POLICIES & ROLES
 aws iam delete-role-policy --role-name tap-build-service --policy-name tapBuildServicePolicy --no-cli-pager
 aws iam delete-role-policy --role-name tap-workload --policy-name tapWorkload --no-cli-pager
 
 aws iam delete-role --role-name tap-build-service --no-cli-pager
 aws iam delete-role --role-name tap-workload --no-cli-pager
-
 
 #DELETE ELBs
 classic_lb=$(aws elb describe-load-balancers | jq -r .LoadBalancerDescriptions[].LoadBalancerName)
@@ -30,10 +28,8 @@ aws elb delete-load-balancer --load-balancer-name $classic_lb
 
 sleep 60
 
-
 #DELETE IGWs
-aws ec2 describe-internet-gateways
-
+#aws ec2 describe-internet-gateways --no-cli-pager
 
 #DELETE ECRs
 aws ecr delete-repository --repository-name tanzu-application-platform/tanzu-java-web-app-default --region $AWS_REGION --force
@@ -42,9 +38,7 @@ aws ecr delete-repository --repository-name tanzu-application-platform/tanzu-jav
 #aws ecr delete-repository --repository-name tap-images --region $AWS_REGION --force
 #aws ecr delete-repository --repository-name tap-build-service --region $AWS_REGION --force
 
-
 #DELETE VPC
-
 
 #DELETE STACK
 eksctl delete cluster --name $cluster_name
