@@ -15,7 +15,7 @@ access_token=$(echo ${token} | jq -r .access_token)
 
 curl -i -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer $access_token" -X GET https://network.pivotal.io/api/v2/authentication
 
-acr_secret=$(az acr credential show --name tanzuapplicationregistry | jq -r ".passwords[0].value")
+acr_secret=$(aws secretsmanager get-secret-value --secret-id tap-workshop | jq -r .SecretString | jq -r .\"acr-secret\")
 
 export INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
 export IMGPKG_REGISTRY_HOSTNAME_1=tanzuapplicationregistry.azurecr.io
@@ -145,10 +145,14 @@ kubectl apply -f rbac-dev.yaml
 
 # 10. CONFIGURE DNS NAME WITH ELB IP
 echo
-echo "<<< CONFIGURING DNS >>>"
+echo "Press Ctrl+C when contour packages has successfully reconciled"
 echo
 
 kubectl get pkgi -n tap-install -w | grep contour
+
+echo
+echo "<<< CONFIGURING DNS >>>"
+echo
 
 hosted_zone_id=$(aws route53 list-hosted-zones --query HostedZones[0].Id --output text | awk -F '/' '{print $3}')
 ingress=$(kubectl get svc envoy -n tanzu-system-ingress -o json | jq -r .status.loadBalancer.ingress[].hostname)
