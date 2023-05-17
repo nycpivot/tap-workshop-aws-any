@@ -1,5 +1,6 @@
 #!/bin/bash
 
+echo
 kubectl config get-contexts
 echo
 
@@ -7,6 +8,13 @@ read -p "Input cluster name: " cluster_name
 
 kubectl config use-context $cluster_name
 echo
+
+read -p "GitOps Repository (tap-gitops): " gitops_repo
+
+if [[ -z $gitops_repo ]]
+then
+  gitops_repo=tap-gitops
+fi
 
 GIT_CATALOG_REPOSITORY=tanzu-application-platform
 
@@ -40,24 +48,28 @@ export INSTALL_REGISTRY_PASSWORD=$PIVNET_PASSWORD
 #CREATE GIT SSH DEPLOY-KEYS
 rm .ssh/id_ed25519
 rm .ssh/id_ed25519.pub
-ssh-keygen -t ed25519 -C "ssh@github.com"
+ssh-keygen -t ed25519 -C "git@github.com"
 
 #DELETE AND CLONE REPO
-#gh auth refresh -h github.com -s delete_repo
-#gh repo delete tap-gitops --yes
-#gh repo create tap-gitops --public
-#gh repo clone git@github.com:nycpivot/tap-gitops.git
-#cd $HOME/tap-gitops
-#gh repo deploy-key add ~/.ssh/id_ed25519.pub --allow-write
-#git branch -m master main
+rm -rf $gitops_repo
 
-wget https://network.tanzu.vmware.com/api/v2/products/tanzu-application-platform/releases/1283005/product_files/1467377/download --header="Authorization: Bearer $access_token" -O tanzu-gitops-ri-0.1.0.tgz
-tar xvf tanzu-gitops-ri-0.1.0.tgz -C $HOME/tap-gitops
+# gh auth refresh -h github.com -s delete_repo
+gh auth login --git-protocol ssh --with-token < git-token.txt
+gh repo delete $gitops_repo --yes
+gh repo create $gitops_repo --public --clone
+
+cd $HOME/$gitops_repo
+gh repo deploy-key add ~/.ssh/id_ed25519.pub --allow-write
+
+wget https://network.tanzu.vmware.com/api/v2/products/tanzu-application-platform/releases/1283005/product_files/1467377/download \
+  --header="Authorization: Bearer $access_token" -O tanzu-gitops-ri-0.1.0.tgz
+tar xvf tanzu-gitops-ri-0.1.0.tgz -C $HOME/$gitops_repo
 
 rm tanzu-gitops-ri-0.1.0.tgz
 
 git add .
 git commit -m "Initialize Tanzu GitOps RI"
+git branch -m master main
 git push -u origin main
 
 #CREATE CLUSTER CONFIG
@@ -69,20 +81,9 @@ git push
 
 cd $HOME
 
-# cat <<EOF | tee tap-sensitive-values.yaml
-# tap_install:
-#  sensitive_values:
-# EOF
-
-# export SOPS_AGE_RECIPIENTS=$(cat $HOME/key.txt | grep "# public key: " | sed 's/# public key: //')
-# ./sops --encrypt $HOME/tap-sensitive-values.yaml > $HOME/tap-sensitive-values.sops.yaml
-
-# mv $HOME/tap-sensitive-values.sops.yaml $HOME/tap-gitops/clusters/$cluster_name/cluster-config/values/
-# rm tap-sensitive-values.yaml
-
-mkdir $HOME/tap-gitops/clusters/$cluster_name/cluster-config/namespaces
-rm $HOME/tap-gitops/clusters/$cluster_name/cluster-config/namespaces/desired-namespaces.yaml
-cat <<EOF | tee $HOME/tap-gitops/clusters/$cluster_name/cluster-config/namespaces/desired-namespaces.yaml
+mkdir $HOME/$gitops_repo/clusters/$cluster_name/cluster-config/namespaces
+rm $HOME/$gitops_repo/clusters/$cluster_name/cluster-config/namespaces/desired-namespaces.yaml
+cat <<EOF | tee $HOME/$gitops_repo/clusters/$cluster_name/cluster-config/namespaces/desired-namespaces.yaml
 #@data/values
 ---
 namespaces:
@@ -92,8 +93,8 @@ namespaces:
 - name: qa
 EOF
 
-rm $HOME/tap-gitops/clusters/$cluster_name/cluster-config/namespaces/namespaces.yaml
-cat <<EOF | tee $HOME/tap-gitops/clusters/$cluster_name/cluster-config/namespaces/namespaces.yaml
+rm $HOME/$gitops_repo/clusters/$cluster_name/cluster-config/namespaces/namespaces.yaml
+cat <<EOF | tee $HOME/$gitops_repo/clusters/$cluster_name/cluster-config/namespaces/namespaces.yaml
 #@ load("@ytt:data", "data")
 #! This for loop will loop over the namespace list in desired-namespaces.yaml and will create those namespaces.
 #! NOTE: if you have another tool like Tanzu Mission Control or some other process that is taking care of creating namespaces for you, 
@@ -107,8 +108,8 @@ metadata:
 #@ end
 EOF
 
-rm $HOME/tap-gitops/clusters/$cluster_name/cluster-config/values/tap-non-sensitive-values.yaml
-cat <<EOF | tee $HOME/tap-gitops/clusters/$cluster_name/cluster-config/values/tap-non-sensitive-values.yaml
+rm $HOME/$gitops_repo/clusters/$cluster_name/cluster-config/values/tap-non-sensitive-values.yaml
+cat <<EOF | tee $HOME/$gitops_repo/clusters/$cluster_name/cluster-config/values/tap-non-sensitive-values.yaml
 ---
 tap_install:
   values:
@@ -150,14 +151,15 @@ tap_install:
       gitops_install:
         ref: origin/main
         subPath: clusters/tap-full/cluster-config/namespaces
-        url: https://github.com/nycpivot/tap-gitops.git
+        url: https://github.com/nycpivot/$gitops_repo.git
     excluded_packages:
       - policy.apps.tanzu.vmware.com
 EOF
 
-age-keygen -o key.txt
+rm $HOME/key.txt
+age-keygen -o $HOME/key.txt
 
-export SOPS_AGE_KEY_FILE=key.txt
+export SOPS_AGE_KEY_FILE=$HOME/key.txt
 
 cat <<EOF | tee tap-sensitive-values.yaml
 tap_install:
@@ -170,26 +172,16 @@ tap_install:
 EOF
 
 export SOPS_AGE_RECIPIENTS=$(cat $HOME/key.txt | grep "# public key: " | sed 's/# public key: //')
-sops --encrypt $HOME/tap-sensitive-values.yaml > $HOME/tap-gitops/clusters/$cluster_name/cluster-config/values/
+sops --encrypt $HOME/tap-sensitive-values.yaml > $HOME/$gitops_repo/clusters/$cluster_name/cluster-config/values/tap-sensitive-values.sops.yaml
 
 rm tap-sensitive-values.yaml
-
-# #COPY CONTENTS OF FOLLOWING FILE...
-# cat registry-credentials.yaml
-
-# echo
-# echo "Copy the above yaml and paste it into editor"
-# sleep 15
-
-# #...AND PASTE IT HERE
-# ./sops $HOME/tap-gitops/clusters/$cluster_name/cluster-config/values/tap-sensitive-values.sops.yaml
 
 export GIT_SSH_PRIVATE_KEY=$(cat $HOME/.ssh/id_ed25519)
 export GIT_KNOWN_HOSTS=$(ssh-keyscan github.com)
 export SOPS_AGE_KEY=$(cat $HOME/key.txt)
 export TAP_PKGR_REPO=registry.tanzu.vmware.com/tanzu-application-platform/tap-packages
 
-cd $HOME/tap-gitops/clusters/$cluster_name
+cd $HOME/$gitops_repo/clusters/$cluster_name
 
 ./tanzu-sync/scripts/configure.sh
 

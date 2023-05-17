@@ -2,6 +2,7 @@
 
 read -p "Cluster Name: " cluster_name
 read -p "Full Domain Name: " full_domain
+read -p "GitOps Mode (sops|eso): " gitops_mode
 
 echo export FULL_DOMAIN=$full_domain >> $HOME/.bashrc
 
@@ -364,6 +365,7 @@ cd $HOME/tanzu-cluster-essentials
 
 sudo cp $HOME/tanzu-cluster-essentials/kapp /usr/local/bin/kapp
 sudo cp $HOME/tanzu-cluster-essentials/imgpkg /usr/local/bin/imgpkg
+sudo cp $HOME/tanzu-cluster-essentials/ytt /usr/local/bin/ytt
 
 cd $HOME
 
@@ -405,10 +407,11 @@ tar xf age.tar.gz
 sudo mv age/age /usr/local/bin
 sudo mv age/age-keygen /usr/local/bin
 
+rm age.tar.gz
 
 #download sample app code
 rm -rf tanzu-java-web-app
 git clone https://github.com/nycpivot/tanzu-java-web-app
 
 #INSTALL OOTB SUPPLY CHAIN - BASIC
-bash $HOME/tap-workshop-aws-any/full-profile/gitops/supply-chain/01-ootb-basic.sh
+bash $HOME/tap-workshop-aws-any/full-profile/gitops/supply-chain/01-ootb-basic-$gitops_mode.sh

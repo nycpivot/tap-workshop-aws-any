@@ -76,9 +76,8 @@ curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo 
 
 git_token=$(aws secretsmanager get-secret-value --secret-id tap-workshop | jq -r .SecretString | jq -r .\"github-token\")
 
-echo git_token > git-token.txt
-
-gh auth login --git-protocol ssh --with-token < git-token.txt
+rm git-token.txt
+echo $git_token > git-token.txt
 
 #SAVE AWS DETAILS
 aws_account_id=$(aws secretsmanager get-secret-value --secret-id tap-workshop | jq -r .SecretString | jq -r .\"aws-account-id\")
