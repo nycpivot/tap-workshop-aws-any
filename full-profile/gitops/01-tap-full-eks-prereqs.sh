@@ -394,9 +394,17 @@ imgpkg copy --concurrency 1 -b $IMGPKG_REGISTRY_HOSTNAME_0/tanzu-application-pla
 #GITOPS
 rm sops
 wget https://github.com/mozilla/sops/releases/download/v3.7.3/sops-v3.7.3.linux.amd64 -O sops
-chmod 777 sops
+chmod +x sops
+sudo mv sops /usr/local/bin
 
-sudo apt install age
+AGE_VERSION=$(curl -s "https://api.github.com/repos/FiloSottile/age/releases/latest" | grep -Po '"tag_name": "v\K[0-9.]+')
+
+curl -Lo age.tar.gz "https://github.com/FiloSottile/age/releases/latest/download/age-v${AGE_VERSION}-linux-amd64.tar.gz"
+tar xf age.tar.gz
+
+sudo mv age/age /usr/local/bin
+sudo mv age/age-keygen /usr/local/bin
+
 
 #download sample app code
 rm -rf tanzu-java-web-app

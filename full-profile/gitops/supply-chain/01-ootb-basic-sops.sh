@@ -170,7 +170,7 @@ tap_install:
 EOF
 
 export SOPS_AGE_RECIPIENTS=$(cat $HOME/key.txt | grep "# public key: " | sed 's/# public key: //')
-./sops --encrypt $HOME/tap-sensitive-values.yaml > $HOME/tap-gitops/clusters/$cluster_name/cluster-config/values/
+sops --encrypt $HOME/tap-sensitive-values.yaml > $HOME/tap-gitops/clusters/$cluster_name/cluster-config/values/
 
 rm tap-sensitive-values.yaml
 
