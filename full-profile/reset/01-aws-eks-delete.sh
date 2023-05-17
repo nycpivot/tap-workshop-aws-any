@@ -20,10 +20,12 @@ aws iam delete-role --role-name tap-build-service --no-cli-pager
 aws iam delete-role --role-name tap-workload --no-cli-pager
 
 #DELETE ELBs
-classic_lb=$(aws elb describe-load-balancers | jq -r .LoadBalancerDescriptions[].LoadBalancerName)
+classic_lb1=$(aws elb describe-load-balancers | jq -r .LoadBalancerDescriptions[0].LoadBalancerName)
+classic_lb2=$(aws elb describe-load-balancers | jq -r .LoadBalancerDescriptions[1].LoadBalancerName)
 #network_lb=$(aws elbv2 describe-load-balancers | jq -r .LoadBalancers[].LoadBalancerArn)
 
-aws elb delete-load-balancer --load-balancer-name $classic_lb
+aws elb delete-load-balancer --load-balancer-name $classic_lb1
+aws elb delete-load-balancer --load-balancer-name $classic_lb2
 #aws elbv2 delete-load-balancer --load-balancer-arn $network_lb
 
 sleep 60
