@@ -75,9 +75,6 @@ git push -u origin main
 #CREATE CLUSTER CONFIG
 ./setup-repo.sh $cluster_name sops
 
-echo "SLEEPING"
-sleep 15
-
 git add .
 git commit -m "Added tap-full cluster"
 git push
@@ -208,6 +205,9 @@ tanzu secret registry add registry-credentials \
   --yes
 
 cd $HOME
+
+#SHOW ALL NS, INCLUDING THOSE ADDED FROM REPO CONFIG
+kubectl get ns
 
 # 10. CONFIGURE DNS NAME WITH ELB IP
 echo

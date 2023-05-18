@@ -26,6 +26,13 @@ clear
 
 DEMO_PROMPT="${GREEN}➜ TAP ${CYAN}\W "
 
+read -p "App Namespace: " namespace
+
+if [[ -z $namespace ]]
+then
+    namespace=default
+fi
+
 app_name=tanzu-java-web-app
 git_repo=https://github.com/nycpivot/tanzu-java-web-app
 sub_path=ootb-supply-chain-basic
@@ -46,7 +53,7 @@ clear
 pe "tanzu apps cluster-supply-chain list"
 echo
 
-pe "tanzu apps workload list"
+pe "tanzu apps workload list -n $namespace"
 echo
 
 workloads_msg=$(tanzu apps workload list)
