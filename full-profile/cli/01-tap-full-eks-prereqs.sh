@@ -12,7 +12,7 @@ echo $full_domain > /tmp/tap-full-domain
 
 export TANZU_CLI_NO_INIT=true
 export TANZU_VERSION=v0.28.1
-export TAP_VERSION=1.5.2-build.1
+export TAP_VERSION=1.5.0
 
 export CLI_FILENAME=tanzu-framework-linux-amd64-v0.28.1.1.tar
 export ESSENTIALS_FILENAME=tanzu-cluster-essentials-linux-amd64-1.5.0.tgz

@@ -72,8 +72,14 @@ git commit -m "Initialize Tanzu GitOps RI"
 git branch -m master main
 git push -u origin main
 
+echo "SLEEPING"
+sleep 15
+
 #CREATE CLUSTER CONFIG
 ./setup-repo.sh $cluster_name sops
+
+echo "SLEEPING"
+sleep 15
 
 git add .
 git commit -m "Added tap-full cluster"
@@ -186,7 +192,13 @@ export TAP_PKGR_REPO=registry.tanzu.vmware.com/tanzu-application-platform/tap-pa
 
 cd $HOME/$gitops_repo/clusters/$cluster_name
 
+echo "SLEEPING"
+sleep 15
+
 ./tanzu-sync/scripts/configure.sh
+
+echo "SLEEPING"
+sleep 15
 
 git add cluster-config/ tanzu-sync/
 git commit -m "Configure install of TAP 1.5.0"
