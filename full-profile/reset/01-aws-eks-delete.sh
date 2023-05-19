@@ -28,7 +28,7 @@ aws elb delete-load-balancer --load-balancer-name $classic_lb1
 aws elb delete-load-balancer --load-balancer-name $classic_lb2
 #aws elbv2 delete-load-balancer --load-balancer-arn $network_lb
 
-sleep 60
+sleep 30
 
 #DELETE IGWs
 #aws ec2 describe-internet-gateways --no-cli-pager

@@ -60,7 +60,7 @@ workloads_msg=$(tanzu apps workload list)
 
 if [[ $workloads_msg != "No workloads found." ]]
 then
-    pe "tanzu apps workload delete $app_name --yes"
+    pe "tanzu apps workload delete $app_name -n $namespace --yes"
 fi
 
 pe "clear"
@@ -73,18 +73,18 @@ echo
 
 pe "clear"
 
-pe "tanzu apps workload create $app_name --git-repo $git_repo --git-branch main --type web --label app.kubernetes.io/part-of=$app_name --yes"
+pe "tanzu apps workload create $app_name  -n $namespace--git-repo $git_repo --git-branch main --type web --label app.kubernetes.io/part-of=$app_name --yes"
 echo
 
 pe "clear"
 
-pe "tanzu apps workload tail $app_name --since 1h --timestamp"
+pe "tanzu apps workload tail $app_name -n $namespace --since 1h --timestamp"
 echo
 
-pe "tanzu apps workload list"
+pe "tanzu apps workload list -n $namespace"
 echo
 
-pe "tanzu apps workload get $app_name"
+pe "tanzu apps workload get $app_name -n $namespace"
 echo
 
 echo "APP URL: " http://$app_name.default.full.tap.nycpivot.com

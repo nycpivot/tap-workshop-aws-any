@@ -1,6 +1,11 @@
 #!/bin/bash
 
-read -p "AWS Region Code: " aws_region_code
+read -p "AWS Region Code (us-east-1): " aws_region_code
+
+if [[ -z $aws_region_code ]]
+then
+    aws_region_code=us-east-1
+fi
 
 aws cloudformation delete-stack --region $aws_region_code --stack-name tanzu-operator-stack
 

@@ -46,9 +46,9 @@ export INSTALL_REGISTRY_USERNAME=$PIVNET_USERNAME
 export INSTALL_REGISTRY_PASSWORD=$PIVNET_PASSWORD
 
 #CREATE GIT SSH DEPLOY-KEYS
-rm .ssh/id_ed25519
-rm .ssh/id_ed25519.pub
-ssh-keygen -t ed25519 -C "git@github.com"
+#rm .ssh/id_ed25519
+#rm .ssh/id_ed25519.pub
+ssh-keygen -t ed25519 -C "git@github.com" -N '' <<< $'\ny' >/dev/null 2>&1
 
 #DELETE AND CLONE REPO
 rm -rf $gitops_repo
