@@ -31,7 +31,10 @@ aws elb delete-load-balancer --load-balancer-name $classic_lb2
 sleep 30
 
 #DELETE IGWs
-#aws ec2 describe-internet-gateways --no-cli-pager
+igw_id=$(aws ec2 describe-internet-gateways --query "InternetGateways[?Tags[?Value=='tap-full']].InternetGatewayId" --output text)
+aws ec2 delete-internet-gateway --internet-gateway-id $igw_id
+
+sleep 300
 
 #DELETE ECRs
 aws ecr delete-repository --repository-name tanzu-application-platform/tanzu-java-web-app-default --region $AWS_REGION --force

@@ -1,8 +1,13 @@
 #!/bin/bash
 
-read -p "AWS Access Key Id: " aws_access_key_id
+read -p "AWS Access Key: " aws_access_key
 read -p "AWS Secret Access Key: " aws_secret_access_key
-read -p "AWS Default Region: " aws_region_code
+read -p "AWS Default Region (us-east-1): " aws_region_code
+
+if [[ -z $aws_region_code ]]
+then
+    aws_region_code=us-east-1
+fi
 
 sudo apt update
 yes | sudo apt upgrade
@@ -47,11 +52,9 @@ curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/d
 sudo mv /tmp/eksctl /usr/local/bin
 chmod +x /usr/local/bin/eksctl
 
-aws configure set aws_access_key_id $aws_access_key_id
+aws configure set aws_access_key_id $aws_access_key
 aws configure set aws_secret_access_key $aws_secret_access_key
 aws configure set default.region $aws_region_code
-
-#echo cli_pager= >> $HOME/.aws/config
 
 
 #KUBECTL

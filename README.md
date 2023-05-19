@@ -8,12 +8,12 @@ This repository offers application developers and operators practical examples f
 
 The two scripts in the root directory can be run to bootstrap an Ubuntu Linux jumpbox in the target environment and install all prerequisites needed to run the workshop.
 
-* [01-tanzu-operator-new.sh](01-tanzu-operator-new.sh), this script will execute an AWS CloudFormation stack that will create an EC2 instance in the default network.
-* [02-tanzu-operator-prereqs.sh](02-tanzu-operator-prereqs.sh), this script installs all the prerequisites necessary for the workshop.
+* [01-tanzu-operator-new.sh](01-tanzu-operator-new.sh), this script will execute an AWS *CloudFormation stack that will create an EC2 instance in the default network.
+* [02-tanzu-operator-prereqs.sh](02-tanzu-operator-prereqs.sh), this script installs all the prerequisites necessary for the workshop. You will need your AWS Access Key and Secret.
 
 If you prefer to operate the cluster on your local machine, the following prerequisites will be required.
 
-NOTE: The CloudFormation stack expects an existing Security Group and Key Pair.
+*NOTE: The CloudFormation stack expects an existing Security Group and Key Pair.
 
 ## Prerequisites
 
@@ -32,12 +32,9 @@ Once these prerequisites have been met, the operator has the following options f
 
 * [Multi Cluster](multi-profile), the components are assigned to separate clusters based on their function, also known as Multi-Profile. This architecture is preferred for production environments. For example, application builds are managed separate from live application workloads.
 
-    View, this cluster runs the TAP dashboard and TAP Learning Center. It also includes the store of metadata from the other clusters.
-    Build, responsible for automatically generating Docker OCI-compliant container images from raw source code.
-    Run, application workloads are scheduled to these clusters.
-    Iterate, supports all the components in a single cluster for development and testing.
+The multi-profile architecture lends itself to scaling clusters differently according to usage. For example, application workloads on the Run cluster can scale more or less nodes depending on the usage, without the need to scale a build cluster.
 
-This architecture lends itself to scaling clusters differently according to usage. For example, application workloads on the Run cluster can scale more or less nodes depending on the usage, without the need to scale a build cluster.
+For a complete reference architecture, see [TAP Reference Architecture](https://docs.vmware.com/en/VMware-Tanzu-Application-Platform/1.5/tap-reference-architecture/GUID-reference-designs-tap-architecture-planning.html)
 
 ### Installation Types
 
