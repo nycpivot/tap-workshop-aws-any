@@ -117,212 +117,7 @@ kubectl annotate serviceaccount ebs-csi-controller-sa \
 rm aws-ebs-csi-driver-trust-policy.json
 
 
-# 5. RBAC FOR ECR FROM EKS CLUSTER
-echo
-echo "<<< CREATING IAM ROLES FOR ECR >>>"
-echo
-
-export OIDCPROVIDER=$(aws eks describe-cluster --name $cluster_name --region $AWS_REGION | jq '.cluster.identity.oidc.issuer' | tr -d '"' | sed 's/https:\/\///')
-
-cat <<EOF > build-service-trust-policy.json
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Principal": {
-                "Federated": "arn:aws:iam::$AWS_ACCOUNT_ID:oidc-provider/$OIDCPROVIDER"
-            },
-            "Action": "sts:AssumeRoleWithWebIdentity",
-            "Condition": {
-                "StringEquals": {
-                    "$OIDCPROVIDER:aud": "sts.amazonaws.com"
-                },
-                "StringLike": {
-                    "$OIDCPROVIDER:sub": [
-                        "system:serviceaccount:kpack:controller",
-                        "system:serviceaccount:build-service:dependency-updater-controller-serviceaccount"
-                    ]
-                }
-            }
-        }
-    ]
-}
-EOF
-
-cat <<EOF > build-service-policy.json
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Action": [
-                "ecr:DescribeRegistry",
-                "ecr:GetAuthorizationToken",
-                "ecr:GetRegistryPolicy",
-                "ecr:PutRegistryPolicy",
-                "ecr:PutReplicationConfiguration",
-                "ecr:DeleteRegistryPolicy"
-            ],
-            "Resource": "*",
-            "Effect": "Allow",
-            "Sid": "TAPEcrBuildServiceGlobal"
-        },
-        {
-            "Action": [
-                "ecr:DescribeImages",
-                "ecr:ListImages",
-                "ecr:BatchCheckLayerAvailability",
-                "ecr:BatchGetImage",
-                "ecr:BatchGetRepositoryScanningConfiguration",
-                "ecr:DescribeImageReplicationStatus",
-                "ecr:DescribeImageScanFindings",
-                "ecr:DescribeRepositories",
-                "ecr:GetDownloadUrlForLayer",
-                "ecr:GetLifecyclePolicy",
-                "ecr:GetLifecyclePolicyPreview",
-                "ecr:GetRegistryScanningConfiguration",
-                "ecr:GetRepositoryPolicy",
-                "ecr:ListTagsForResource",
-                "ecr:TagResource",
-                "ecr:UntagResource",
-                "ecr:BatchDeleteImage",
-                "ecr:BatchImportUpstreamImage",
-                "ecr:CompleteLayerUpload",
-                "ecr:CreatePullThroughCacheRule",
-                "ecr:CreateRepository",
-                "ecr:DeleteLifecyclePolicy",
-                "ecr:DeletePullThroughCacheRule",
-                "ecr:DeleteRepository",
-                "ecr:InitiateLayerUpload",
-                "ecr:PutImage",
-                "ecr:PutImageScanningConfiguration",
-                "ecr:PutImageTagMutability",
-                "ecr:PutLifecyclePolicy",
-                "ecr:PutRegistryScanningConfiguration",
-                "ecr:ReplicateImage",
-                "ecr:StartImageScan",
-                "ecr:StartLifecyclePolicyPreview",
-                "ecr:UploadLayerPart",
-                "ecr:DeleteRepositoryPolicy",
-                "ecr:SetRepositoryPolicy"
-            ],
-            "Resource": [
-                "arn:aws:ecr:$AWS_REGION:$AWS_ACCOUNT_ID:repository/tap-build-service",
-                "arn:aws:ecr:$AWS_REGION:$AWS_ACCOUNT_ID:repository/tap-images"
-            ],
-            "Effect": "Allow",
-            "Sid": "TAPEcrBuildServiceScoped"
-        }
-    ]
-}
-EOF
-
-cat <<EOF > workload-trust-policy.json
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Principal": {
-                "Federated": "arn:aws:iam::$AWS_ACCOUNT_ID:oidc-provider/$OIDCPROVIDER"
-            },
-            "Action": "sts:AssumeRoleWithWebIdentity",
-            "Condition": {
-                "StringEquals": {
-                    "$OIDCPROVIDER:sub": "system:serviceaccount:default:default",
-                    "$OIDCPROVIDER:aud": "sts.amazonaws.com"
-                }
-            }
-        }
-    ]
-}
-EOF
-
-cat <<EOF > workload-policy.json
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Action": [
-                "ecr:DescribeRegistry",
-                "ecr:GetAuthorizationToken",
-                "ecr:GetRegistryPolicy",
-                "ecr:PutRegistryPolicy",
-                "ecr:PutReplicationConfiguration",
-                "ecr:DeleteRegistryPolicy"
-            ],
-            "Resource": "*",
-            "Effect": "Allow",
-            "Sid": "TAPEcrWorkloadGlobal"
-        },
-        {
-            "Action": [
-                "ecr:DescribeImages",
-                "ecr:ListImages",
-                "ecr:BatchCheckLayerAvailability",
-                "ecr:BatchGetImage",
-                "ecr:BatchGetRepositoryScanningConfiguration",
-                "ecr:DescribeImageReplicationStatus",
-                "ecr:DescribeImageScanFindings",
-                "ecr:DescribeRepositories",
-                "ecr:GetDownloadUrlForLayer",
-                "ecr:GetLifecyclePolicy",
-                "ecr:GetLifecyclePolicyPreview",
-                "ecr:GetRegistryScanningConfiguration",
-                "ecr:GetRepositoryPolicy",
-                "ecr:ListTagsForResource",
-                "ecr:TagResource",
-                "ecr:UntagResource",
-                "ecr:BatchDeleteImage",
-                "ecr:BatchImportUpstreamImage",
-                "ecr:CompleteLayerUpload",
-                "ecr:CreatePullThroughCacheRule",
-                "ecr:CreateRepository",
-                "ecr:DeleteLifecyclePolicy",
-                "ecr:DeletePullThroughCacheRule",
-                "ecr:DeleteRepository",
-                "ecr:InitiateLayerUpload",
-                "ecr:PutImage",
-                "ecr:PutImageScanningConfiguration",
-                "ecr:PutImageTagMutability",
-                "ecr:PutLifecyclePolicy",
-                "ecr:PutRegistryScanningConfiguration",
-                "ecr:ReplicateImage",
-                "ecr:StartImageScan",
-                "ecr:StartLifecyclePolicyPreview",
-                "ecr:UploadLayerPart",
-                "ecr:DeleteRepositoryPolicy",
-                "ecr:SetRepositoryPolicy"
-            ],
-            "Resource": [
-                "arn:aws:ecr:$AWS_REGION:$AWS_ACCOUNT_ID:repository/tap-build-service",
-                "arn:aws:ecr:$AWS_REGION:$AWS_ACCOUNT_ID:repository/tanzu-application-platform/tanzu-java-web-app",
-                "arn:aws:ecr:$AWS_REGION:$AWS_ACCOUNT_ID:repository/tanzu-application-platform/tanzu-java-web-app-bundle",
-                "arn:aws:ecr:$AWS_REGION:$AWS_ACCOUNT_ID:repository/tanzu-application-platform",
-                "arn:aws:ecr:$AWS_REGION:$AWS_ACCOUNT_ID:repository/tanzu-application-platform/*"
-            ],
-            "Effect": "Allow",
-            "Sid": "TAPEcrWorkloadScoped"
-        }
-    ]
-}
-EOF
-
-# Create the Build Service Role
-aws iam create-role --role-name tap-build-service --assume-role-policy-document file://build-service-trust-policy.json --no-cli-pager
-aws iam put-role-policy --role-name tap-build-service --policy-name tapBuildServicePolicy --policy-document file://build-service-policy.json --no-cli-pager
-
-# Create the Workload Role
-aws iam create-role --role-name tap-workload --assume-role-policy-document file://workload-trust-policy.json --no-cli-pager
-aws iam put-role-policy --role-name tap-workload --policy-name tapWorkload --policy-document file://workload-policy.json --no-cli-pager
-
-rm build-service-trust-policy.json
-rm build-service-policy.json
-rm workload-trust-policy.json
-rm workload-policy.json
-
-
-# 6. TANZU PREREQS
+# 3. DOWNLOAD AND INSTALL TANZU CLI
 # https://docs.vmware.com/en/VMware-Tanzu-Application-Platform/1.5/tap/install-tanzu-cli.html
 # https://network.tanzu.vmware.com/products/tanzu-application-platform#/releases/1287438/file_groups/12507
 echo
@@ -349,7 +144,8 @@ tanzu plugin install --local cli all
 
 cd $HOME
 
-# cluster essentials
+
+# 4. DOWNLOAD AND INSTALL CLUSTER ESSENTIALS
 # https://docs.vmware.com/en/Cluster-Essentials-for-VMware-Tanzu/1.5/cluster-essentials/deploy.html
 # https://network.tanzu.vmware.com/products/tanzu-cluster-essentials/
 rm -rf $HOME/tanzu-cluster-essentials
@@ -373,7 +169,7 @@ rm $HOME/tanzu/$CLI_FILENAME
 rm $HOME/tanzu-cluster-essentials/$ESSENTIALS_FILENAME
 
 
-# 7. IMPORT TAP PACKAGES
+# 5. IMPORT TAP PACKAGES
 echo
 echo "<<< IMPORTING TAP PACKAGES >>>"
 echo
@@ -393,7 +189,11 @@ docker login $IMGPKG_REGISTRY_HOSTNAME_0 -u $IMGPKG_REGISTRY_USERNAME_0 -p $IMGP
 imgpkg copy --concurrency 1 -b $IMGPKG_REGISTRY_HOSTNAME_0/tanzu-application-platform/tap-packages:${TAP_VERSION} \
     --to-repo ${IMGPKG_REGISTRY_HOSTNAME_1}/$INSTALL_REPO
 
-#GITOPS
+
+# 6. <<< GITOPS WILL CONTINUE TO INSTALL TAP FROM HERE FROM GIT REPO>
+
+
+# 7. INSTALL SOPS AND AGE FOR GITOPS
 rm sops
 wget https://github.com/mozilla/sops/releases/download/v3.7.3/sops-v3.7.3.linux.amd64 -O sops
 chmod +x sops
