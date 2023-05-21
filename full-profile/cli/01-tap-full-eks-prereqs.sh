@@ -116,11 +116,11 @@ kubectl annotate serviceaccount ebs-csi-controller-sa \
 rm aws-ebs-csi-driver-trust-policy.json
 
 
-# 3. DOWNLOAD AND INSTALL TANZU CLI
+# 3. DOWNLOAD AND INSTALL TANZU CLI AND ESSENTIALS
 # https://docs.vmware.com/en/VMware-Tanzu-Application-Platform/1.5/tap/install-tanzu-cli.html
 # https://network.tanzu.vmware.com/products/tanzu-application-platform#/releases/1287438/file_groups/12507
 echo
-echo "<<< INSTALLING TANZU AND CLUSTER ESSENTIALS >>>"
+echo "<<< INSTALLING TANZU CLI AND CLUSTER ESSENTIALS >>>"
 echo
 
 export INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
