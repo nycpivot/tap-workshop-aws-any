@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TAP_VERSION=1.5.1
+TAP_VERSION=1.5.0
 GIT_CATALOG_REPOSITORY=tanzu-application-platform
 
 FULL_DOMAIN=$(cat /tmp/tap-full-domain)
