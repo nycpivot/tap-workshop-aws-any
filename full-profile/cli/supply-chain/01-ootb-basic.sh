@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TAP_VERSION=1.5.0
+TAP_VERSION=1.5.1
 GIT_CATALOG_REPOSITORY=tanzu-application-platform
 
 FULL_DOMAIN=$(cat /tmp/tap-full-domain)
@@ -10,7 +10,7 @@ export PIVNET_USERNAME=$(aws secretsmanager get-secret-value --secret-id tap-wor
 export PIVNET_PASSWORD=$(aws secretsmanager get-secret-value --secret-id tap-workshop | jq -r .SecretString | jq -r .\"pivnet-password\")
 export PIVNET_TOKEN=$(aws secretsmanager get-secret-value --secret-id tap-workshop | jq -r .SecretString | jq -r .\"pivnet-token\")
 
-token=$(curl -X POST https://network.pivotal.io/api/v2/authentication/access_tokens -d '{"refresh_token":"'$pivnet_token'"}')
+token=$(curl -X POST https://network.pivotal.io/api/v2/authentication/access_tokens -d '{"refresh_token":"'$PIVNET_TOKEN'"}')
 access_token=$(echo ${token} | jq -r .access_token)
 
 curl -i -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer $access_token" -X GET https://network.pivotal.io/api/v2/authentication

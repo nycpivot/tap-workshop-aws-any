@@ -1,10 +1,26 @@
 #!/bin/bash
 
-TAP_VERSION=1.5.2-build.1
-TARGET_TBS_REPO=tap-build-service
+TAP_VERSION=1.5.1
 GIT_CATALOG_REPOSITORY=tanzu-application-platform
 
 FULL_DOMAIN=$(cat /tmp/tap-full-domain)
+
+# 1. CAPTURE PIVNET SECRETS
+export PIVNET_USERNAME=$(aws secretsmanager get-secret-value --secret-id tap-workshop | jq -r .SecretString | jq -r .\"pivnet-username\")
+export PIVNET_PASSWORD=$(aws secretsmanager get-secret-value --secret-id tap-workshop | jq -r .SecretString | jq -r .\"pivnet-password\")
+export PIVNET_TOKEN=$(aws secretsmanager get-secret-value --secret-id tap-workshop | jq -r .SecretString | jq -r .\"pivnet-token\")
+
+token=$(curl -X POST https://network.pivotal.io/api/v2/authentication/access_tokens -d '{"refresh_token":"'$PIVNET_TOKEN'"}')
+access_token=$(echo ${token} | jq -r .access_token)
+
+curl -i -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer $access_token" -X GET https://network.pivotal.io/api/v2/authentication
+
+acr_secret=$(aws secretsmanager get-secret-value --secret-id tap-workshop | jq -r .SecretString | jq -r .\"acr-secret\")
+
+export INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
+export IMGPKG_REGISTRY_HOSTNAME_1=tanzuapplicationregistry.azurecr.io
+export IMGPKG_REGISTRY_USERNAME_1=tanzuapplicationregistry
+export IMGPKG_REGISTRY_PASSWORD_1=$acr_secret
 
 #INSTALL TAP WITH OOTB TESTING
 echo
@@ -20,11 +36,12 @@ shared:
 supply_chain: testing
 ootb_supply_chain_testing:
   registry:
-    server: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+    server: $IMGPKG_REGISTRY_HOSTNAME_1
     repository: "tanzu-application-platform"
 buildservice:
-  kp_default_repository: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$TARGET_TBS_REPO
-  kp_default_repository_aws_iam_role_arn: "arn:aws:iam::$AWS_ACCOUNT_ID:role/$TARGET_TBS_REPO"
+  kp_default_repository: $IMGPKG_REGISTRY_HOSTNAME_1/build-service
+  kp_default_repository_username: $IMGPKG_REGISTRY_USERNAME_1
+  kp_default_repository_password: $IMGPKG_REGISTRY_PASSWORD_1
 contour:
   envoy:
     service:
@@ -37,7 +54,7 @@ tap_gui:
     catalog:
       locations:
         - type: url
-          target: https://github.com/nycpivot/$TARGET_TBS_REPO/catalog-info.yaml
+          target: https://github.com/nycpivot/$GIT_CATALOG_REPOSITORY/catalog-info.yaml
 metadata_store:
   ns_for_export_app_cert: "default"
   app_service_type: LoadBalancer
