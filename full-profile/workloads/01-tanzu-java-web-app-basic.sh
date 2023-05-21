@@ -26,7 +26,7 @@ clear
 
 DEMO_PROMPT="${GREEN}➜ TAP ${CYAN}\W "
 
-read -p "App Namespace: " namespace
+read -p "App Namespace (default): " namespace
 
 if [[ -z $namespace ]]
 then
@@ -37,6 +37,7 @@ app_name=tanzu-java-web-app
 git_repo=https://github.com/nycpivot/tanzu-java-web-app
 sub_path=ootb-supply-chain-basic
 
+echo
 kubectl config get-contexts
 echo
 
@@ -73,7 +74,7 @@ echo
 
 pe "clear"
 
-pe "tanzu apps workload create $app_name  -n $namespace--git-repo $git_repo --git-branch main --type web --label app.kubernetes.io/part-of=$app_name --yes"
+pe "tanzu apps workload create $app_name  -n $namespace --git-repo $git_repo --git-branch main --type web --label app.kubernetes.io/part-of=$app_name --yes"
 echo
 
 pe "clear"
@@ -87,7 +88,7 @@ echo
 pe "tanzu apps workload get $app_name -n $namespace"
 echo
 
-echo "APP URL: " http://$app_name.default.full.tap.nycpivot.com
+echo "APP URL: " https://$app_name.default.full.tap.nycpivot.com
 echo
 
 echo "TAP-GUI: " https://tap-gui.full.tap.nycpivot.com/supply-chain/host/default/$app_name
