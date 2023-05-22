@@ -183,6 +183,8 @@ echo
 echo "<<< IMPORTING TAP PACKAGES >>>"
 echo
 
+sleep 5
+
 acr_secret=$(aws secretsmanager get-secret-value --secret-id tap-workshop | jq -r .SecretString | jq -r .\"acr-secret\")
 
 export IMGPKG_REGISTRY_HOSTNAME_0=registry.tanzu.vmware.com
@@ -200,6 +202,12 @@ imgpkg copy --concurrency 1 -b $IMGPKG_REGISTRY_HOSTNAME_0/tanzu-application-pla
 
 
 # 6. INSTALL TAP WITH CLI
+echo
+echo "<<< INSTALLING TAP WITH CLI >>>"
+echo
+
+sleep 5
+
 kubectl create ns tap-install
 
 tanzu secret registry add tap-registry \

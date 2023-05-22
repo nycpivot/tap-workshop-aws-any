@@ -12,13 +12,6 @@ aws iam detach-role-policy \
 
 aws iam delete-role --role-name ${rolename}
 
-#DELETE IAM ECR POLICIES & ROLES
-aws iam delete-role-policy --role-name tap-build-service --policy-name tapBuildServicePolicy --no-cli-pager
-aws iam delete-role-policy --role-name tap-workload --policy-name tapWorkload --no-cli-pager
-
-aws iam delete-role --role-name tap-build-service --no-cli-pager
-aws iam delete-role --role-name tap-workload --no-cli-pager
-
 #DELETE ELBs
 classic_lb1=$(aws elb describe-load-balancers | jq -r .LoadBalancerDescriptions[0].LoadBalancerName)
 classic_lb2=$(aws elb describe-load-balancers | jq -r .LoadBalancerDescriptions[1].LoadBalancerName)
