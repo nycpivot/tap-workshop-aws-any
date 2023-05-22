@@ -1,7 +1,8 @@
 #!/bin/bash
 
 TAP_VERSION=1.5.0
-OOTB_SUPPLY_CHAIN_TESTING_SCANNING_VERSION=0.11.7
+
+OOTB_SUPPLY_CHAIN_TESTING_SCANNING_VERSION=0.12.5
 
 SOURCE_SCAN_POLICY=source-scan-policy
 IMAGE_SCAN_POLICY=image-scan-policy
@@ -113,10 +114,15 @@ echo
 echo "<<< UPDATE SUPPLY CHAIN TO OOTB TESTING & SCANNING >>>"
 echo
 
+export INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
+export IMGPKG_REGISTRY_HOSTNAME_1=tanzuapplicationregistry.azurecr.io
+export IMGPKG_REGISTRY_USERNAME_1=tanzuapplicationregistry
+export IMGPKG_REGISTRY_PASSWORD_1=$acr_secret
+
 rm tap-values-full-ootb-testing-scanning.yaml
 cat <<EOF | tee tap-values-full-ootb-testing-scanning.yaml
 registry:
-  server: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+  server: $IMGPKG_REGISTRY_HOSTNAME_1
   repository: "tanzu-application-platform"
 scanning:
   source:
@@ -130,13 +136,11 @@ grype:
   targetImagePullSecret: "registry-credentials"
   scanner:
     serviceAccount: grype-scanner
-    serviceAccountAnnotations:
-      eks.amazonaws.com/role-arn: "arn:aws:iam::$AWS_ACCOUNT_ID:role/tap-workload"
 EOF
 echo
 
 tanzu package install ootb-supply-chain-testing-scanning \
-  --package-name ootb-supply-chain-testing-scanning.tanzu.vmware.com \
+  --package ootb-supply-chain-testing-scanning.tanzu.vmware.com \
   --version $OOTB_SUPPLY_CHAIN_TESTING_SCANNING_VERSION \
   --values-file tap-values-full-ootb-testing-scanning.yaml \
   -n tap-install

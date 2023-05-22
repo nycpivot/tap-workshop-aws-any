@@ -35,6 +35,8 @@ echo
 echo "<<< CREATING CLUSTER >>>"
 echo
 
+sleep 5
+
 eksctl create cluster --name $cluster_name --managed --region $AWS_REGION --instance-types t3.xlarge --version 1.25 --with-oidc -N 3
 
 rm .kube/config
@@ -53,6 +55,8 @@ kubectl config use-context $cluster_name
 echo
 echo "<<< INSTALLING CSI PLUGIN >>>"
 echo
+
+sleep 5
 
 rolename=$cluster_name-csi-driver-role
 
@@ -120,8 +124,10 @@ rm aws-ebs-csi-driver-trust-policy.json
 # https://docs.vmware.com/en/VMware-Tanzu-Application-Platform/1.5/tap/install-tanzu-cli.html
 # https://network.tanzu.vmware.com/products/tanzu-application-platform#/releases/1287438/file_groups/12507
 echo
-echo "<<< INSTALLING TANZU CLI AND CLUSTER ESSENTIALS >>>"
+echo "<<< INSTALLING TANZU CLI >>>"
 echo
+
+sleep 5
 
 export INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
 export INSTALL_REGISTRY_USERNAME=$PIVNET_USERNAME
@@ -146,6 +152,12 @@ cd $HOME
 # 4. DOWNLOAD AND INSTALL CLUSTER ESSENTIALS
 # https://docs.vmware.com/en/Cluster-Essentials-for-VMware-Tanzu/1.5/cluster-essentials/deploy.html
 # https://network.tanzu.vmware.com/products/tanzu-cluster-essentials/
+echo
+echo "<<< INSTALLING TANZU CLUSTER ESSENTIALS >>>"
+echo
+
+sleep 5
+
 rm -rf $HOME/tanzu-cluster-essentials
 mkdir $HOME/tanzu-cluster-essentials
 
