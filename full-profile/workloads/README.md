@@ -1,6 +1,6 @@
-# TAP WORKSHOP -> FULL PROFILE -> TANZU CLI
+# TAP WORKSHOP -> FULL PROFILE
 
-## OOTB SUPPLY CHAINS
+## WORKLOADS
 
 The [01-ootb-basic.sh](01-ootb-basic.sh) is the default supply chain which is run at the end of the [01-tap-full-eks-prereqs.sh](../01-tap-full-eks-prereqs.sh).
 
