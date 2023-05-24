@@ -25,9 +25,9 @@ tap_run=tap-run
 tap_iterate=tap-iterate
 
 
-# 1. CREATE CLUSTER
+# 1. CREATE CLUSTERS
 echo
-echo "<<< CREATING CLUSTER >>>"
+echo "<<< CREATING CLUSTERS >>>"
 echo
 
 sleep 5
@@ -37,7 +37,7 @@ sleep 5
 # eksctl create cluster --name $tap_view --managed --region $AWS_REGION --instance-types t3.xlarge --version 1.25 --with-oidc -N 3
 
 aws cloudformation create-stack --stack-name tap-workshop-multicluster-stack --region $AWS_REGION \
-    --template-body file:///home/ubuntu/tap-workshop/multi-profile/config/tap-multicluster-stack.yaml
+    --template-body file:///home/ubuntu/tap-workshop-aws-any/multi-profile/config/tap-multicluster-stack.yaml
 
 aws cloudformation wait stack-create-complete --stack-name tap-workshop-multicluster-stack --region $AWS_REGION
 
@@ -204,31 +204,32 @@ EOF
 
     rm $HOME/tanzu/$CLI_FILENAME
     rm $HOME/tanzu-cluster-essentials/$ESSENTIALS_FILENAME
+done
 
 
-    # 5. IMPORT TAP PACKAGES
-    echo
-    echo "<<< IMPORTING TAP PACKAGES >>>"
-    echo
+# 5. IMPORT TAP PACKAGES
+echo
+echo "<<< IMPORTING TAP PACKAGES >>>"
+echo
 
-    sleep 5
+sleep 5
 
-    acr_secret=$(aws secretsmanager get-secret-value --secret-id tap-workshop | jq -r .SecretString | jq -r .\"acr-secret\")
+acr_secret=$(aws secretsmanager get-secret-value --secret-id tap-workshop | jq -r .SecretString | jq -r .\"acr-secret\")
 
-    export IMGPKG_REGISTRY_HOSTNAME_0=registry.tanzu.vmware.com
-    export IMGPKG_REGISTRY_USERNAME_0=$PIVNET_USERNAME
-    export IMGPKG_REGISTRY_PASSWORD_0=$PIVNET_PASSWORD
-    export IMGPKG_REGISTRY_HOSTNAME_1=tanzuapplicationregistry.azurecr.io
-    export IMGPKG_REGISTRY_USERNAME_1=tanzuapplicationregistry
-    export IMGPKG_REGISTRY_PASSWORD_1=$acr_secret
-    export INSTALL_REPO=tanzu-application-platform/tap-packages
+export IMGPKG_REGISTRY_HOSTNAME_0=registry.tanzu.vmware.com
+export IMGPKG_REGISTRY_USERNAME_0=$PIVNET_USERNAME
+export IMGPKG_REGISTRY_PASSWORD_0=$PIVNET_PASSWORD
+export IMGPKG_REGISTRY_HOSTNAME_1=tanzuapplicationregistry.azurecr.io
+export IMGPKG_REGISTRY_USERNAME_1=tanzuapplicationregistry
+export IMGPKG_REGISTRY_PASSWORD_1=$acr_secret
+export INSTALL_REPO=tanzu-application-platform/tap-packages
 
-    docker login $IMGPKG_REGISTRY_HOSTNAME_0 -u $IMGPKG_REGISTRY_USERNAME_0 -p $IMGPKG_REGISTRY_PASSWORD_0
+docker login $IMGPKG_REGISTRY_HOSTNAME_0 -u $IMGPKG_REGISTRY_USERNAME_0 -p $IMGPKG_REGISTRY_PASSWORD_0
 
-    imgpkg copy --concurrency 1 -b $IMGPKG_REGISTRY_HOSTNAME_0/tanzu-application-platform/tap-packages:${TAP_VERSION} \
-        --to-repo ${IMGPKG_REGISTRY_HOSTNAME_1}/$INSTALL_REPO
+imgpkg copy --concurrency 1 -b $IMGPKG_REGISTRY_HOSTNAME_0/tanzu-application-platform/tap-packages:${TAP_VERSION} \
+    --to-repo ${IMGPKG_REGISTRY_HOSTNAME_1}/$INSTALL_REPO
 
-
+for cluster in "${clusters[@]}" ; do
     # 6. INSTALL TAP WITH CLI
     echo
     echo "<<< INSTALLING TAP WITH CLI >>>"

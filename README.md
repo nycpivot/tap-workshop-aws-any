@@ -22,6 +22,10 @@ If you prefer to operate the cluster on your local machine, the following prereq
 * kubectl
 * helm, jq, etc...
 
+This setup on AWS relies on secrets stored in AWS Secrets Manager. It's very easy to set this up, or you can modify the scripts to set these secrets as in code. The secrets required are as follows.
+
+* 
+
 Once these prerequisites have been met, the operator has the following options for the TAP installation.
 
 ## TAP Installation

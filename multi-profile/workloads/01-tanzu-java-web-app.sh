@@ -48,12 +48,12 @@ echo
 #pe "tanzu apps workload create ${app_name} --git-repo ${git_app_url} --git-branch main --type web --label app.kubernetes.io/part-of=${app_name} --yes --dry-run"
 #echo
 
-pe "tanzu apps workload create ${app_name} --git-repo ${git_app_url} --git-branch main --type web --annotation autoscaling.knative.dev/min-scale=2 --label app.kubernetes.io/part-of=${app_name} --label apps.tanzu.vmware.com/has-tests=true --yes"
+pe "tanzu apps workload create ${app_name} --git-repo ${git_app_url} --git-branch main --type web --annotation autoscaling.knative.dev/min-scale=2 --label app.kubernetes.io/part-of=${app_name} --yes"
 echo
 
 pe "clear"
 
-pe "tanzu apps workload tail ${app_name} --since 10m --timestamp"
+pe "tanzu apps workload tail ${app_name} --since 1h --timestamp"
 echo
 
 pe "tanzu apps workload list"
@@ -94,4 +94,4 @@ echo
 #pe "kubectl get httpproxy"
 #echo
 
-echo http://${app_name}.default.run.tap.nycpivot.com
+echo https://${app_name}.default.run.tap.nycpivot.com

@@ -13,7 +13,8 @@ export PIVNET_TOKEN=$(aws secretsmanager get-secret-value --secret-id tap-worksh
 token=$(curl -X POST https://network.pivotal.io/api/v2/authentication/access_tokens -d '{"refresh_token":"'$PIVNET_TOKEN'"}')
 access_token=$(echo ${token} | jq -r .access_token)
 
-curl -i -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer $access_token" -X GET https://network.pivotal.io/api/v2/authentication
+curl -i -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer $access_token" \
+  -X GET https://network.pivotal.io/api/v2/authentication
 
 acr_secret=$(aws secretsmanager get-secret-value --secret-id tap-workshop | jq -r .SecretString | jq -r .\"acr-secret\")
 
