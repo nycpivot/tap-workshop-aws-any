@@ -255,6 +255,9 @@ echo $change_batch_filename.json
 aws route53 change-resource-record-sets --hosted-zone-id $hosted_zone_id --change-batch file:///$HOME/$change_batch_filename.json
 
 tanzu apps cluster-supply-chain list
+echo
+
+kubectl get ns
 
 echo
 echo "TAP-GUI: " https://tap-gui.$FULL_DOMAIN
