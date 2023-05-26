@@ -30,36 +30,36 @@ Resources:
       Tags:
         - Key: Name
           Value: tap-multicluster-igw
-  PublicSubnetA:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref VPC
-      AvailabilityZone: us-east-1a
-      CidrBlock: 10.0.0.0/24
-      MapPublicIpOnLaunch: true
-      Tags:
-        - Key: Name
-          Value: tap-public-subnet-a
   PublicSubnetB:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: us-east-1b
-      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: ${AWS::Region}b
+      CidrBlock: 10.0.0.0/24
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
           Value: tap-public-subnet-b
+  PublicSubnetC:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: ${AWS::Region}c
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: tap-public-subnet-c
   PublicSubnetBRouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       RouteTableId: !Ref PublicRouteTable
-      SubnetId: !Ref PublicSubnetA
+      SubnetId: !Ref PublicSubnetB
   PublicSubnetCRouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       RouteTableId: !Ref PublicRouteTable
-      SubnetId: !Ref PublicSubnetB
+      SubnetId: !Ref PublicSubnetC
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -84,8 +84,8 @@ Resources:
         SecurityGroupIds:
           - !Ref InstanceSecurityGroup
         SubnetIds:
-          - !Ref PublicSubnetA
           - !Ref PublicSubnetB
+          - !Ref PublicSubnetC
   EKSClusterBuild:
     Type: AWS::EKS::Cluster
     Properties:
@@ -96,8 +96,8 @@ Resources:
         SecurityGroupIds:
           - !Ref InstanceSecurityGroup
         SubnetIds:
-          - !Ref PublicSubnetA
           - !Ref PublicSubnetB
+          - !Ref PublicSubnetC
   EKSClusterRun:
     Type: AWS::EKS::Cluster
     Properties:
@@ -108,8 +108,8 @@ Resources:
         SecurityGroupIds:
           - !Ref InstanceSecurityGroup
         SubnetIds:
-          - !Ref PublicSubnetA
           - !Ref PublicSubnetB
+          - !Ref PublicSubnetC
   EKSClusterIterate:
     Type: AWS::EKS::Cluster
     Properties:
@@ -120,8 +120,8 @@ Resources:
         SecurityGroupIds:
           - !Ref InstanceSecurityGroup
         SubnetIds:
-          - !Ref PublicSubnetA
           - !Ref PublicSubnetB
+          - !Ref PublicSubnetC
   EKSNodeGroupView:
     Type: 'AWS::EKS::Nodegroup'
     DependsOn: EKSClusterView
@@ -137,8 +137,8 @@ Resources:
         DesiredSize: 2
         MaxSize: 3
       Subnets:
-        - !Ref PublicSubnetA
         - !Ref PublicSubnetB
+        - !Ref PublicSubnetC
   EKSNodeGroupBuild:
     Type: 'AWS::EKS::Nodegroup'
     DependsOn: EKSClusterBuild
@@ -154,8 +154,8 @@ Resources:
         DesiredSize: 2
         MaxSize: 3
       Subnets:
-        - !Ref PublicSubnetA
         - !Ref PublicSubnetB
+        - !Ref PublicSubnetC
   EKSNodeGroupRun:
     Type: 'AWS::EKS::Nodegroup'
     DependsOn: EKSClusterRun
@@ -171,8 +171,8 @@ Resources:
         DesiredSize: 2
         MaxSize: 3
       Subnets:
-        - !Ref PublicSubnetA
         - !Ref PublicSubnetB
+        - !Ref PublicSubnetC
   EKSNodeGroupIterate:
     Type: 'AWS::EKS::Nodegroup'
     DependsOn: EKSClusterIterate
@@ -188,5 +188,5 @@ Resources:
         DesiredSize: 2
         MaxSize: 3
       Subnets:
-        - !Ref PublicSubnetA
         - !Ref PublicSubnetB
+        - !Ref PublicSubnetC
