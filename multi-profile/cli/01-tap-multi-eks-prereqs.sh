@@ -32,17 +32,9 @@ echo
 
 sleep 5
 
-if [[ $AWS_REGION = "us-east-1" ]]
-then
   aws cloudformation create-stack --stack-name tap-multicluster-stack --region $AWS_REGION \
-      --template-body file:///home/ubuntu/tap-workshop-aws-any/multi-profile/config/tap-multicluster-stack-east-1.yaml
+      --template-body file:///home/ubuntu/tap-workshop-aws-any/multi-profile/config/tap-multicluster-stack-$AWS_REGION.yaml
   aws cloudformation wait stack-create-complete --stack-name tap-multicluster-stack --region $AWS_REGION
-elif [[ $AWS_REGION = "us-east-2" ]]
-then
-  aws cloudformation create-stack --stack-name tap-multicluster-stack --region $AWS_REGION \
-      --template-body file:///home/ubuntu/tap-workshop-aws-any/multi-profile/config/tap-multicluster-stack-east-2.yaml
-  aws cloudformation wait stack-create-complete --stack-name tap-multicluster-stack --region $AWS_REGION
-fi
 
 arn=arn:aws:eks:$AWS_REGION:$AWS_ACCOUNT_ID:cluster
 
