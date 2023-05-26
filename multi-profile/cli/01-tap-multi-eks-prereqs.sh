@@ -32,14 +32,17 @@ echo
 
 sleep 5
 
-# aws ec2 create-vpc --cidr-block 10.0.0.0/16 --tag-specifications ResourceType=vpc,Tags='[{Key=Name,Value=tap-multicluster-vpc}]'
-
-# eksctl create cluster --name $tap_view --managed --region $AWS_REGION --instance-types t3.xlarge --version 1.25 --with-oidc -N 3
-
-aws cloudformation create-stack --stack-name tap-workshop-multicluster-stack --region $AWS_REGION \
-    --template-body file:///home/ubuntu/tap-workshop-aws-any/multi-profile/config/tap-multicluster-stack.yaml
-
-aws cloudformation wait stack-create-complete --stack-name tap-workshop-multicluster-stack --region $AWS_REGION
+if [[ $AWS_REGION = "us-east-1" ]]
+then
+  aws cloudformation create-stack --stack-name tap-multicluster-stack --region $AWS_REGION \
+      --template-body file:///home/ubuntu/tap-workshop-aws-any/multi-profile/config/tap-multicluster-stack-east-1.yaml
+  aws cloudformation wait stack-create-complete --stack-name tap-multicluster-stack --region $AWS_REGION
+elif [[ $AWS_REGION = "us-east-2" ]]
+then
+  aws cloudformation create-stack --stack-name tap-multicluster-stack --region $AWS_REGION \
+      --template-body file:///home/ubuntu/tap-workshop-aws-any/multi-profile/config/tap-multicluster-stack-east-2.yaml
+  aws cloudformation wait stack-create-complete --stack-name tap-multicluster-stack --region $AWS_REGION
+fi
 
 arn=arn:aws:eks:$AWS_REGION:$AWS_ACCOUNT_ID:cluster
 
