@@ -24,6 +24,8 @@ tap_build=tap-build
 tap_run=tap-run
 tap_iterate=tap-iterate
 
+VIEW_DOMAIN=view.tap.nycpivot.com
+
 
 # 1. CREATE CLUSTERS
 echo
@@ -225,6 +227,9 @@ imgpkg copy --concurrency 1 -b $IMGPKG_REGISTRY_HOSTNAME_0/tanzu-application-pla
     --to-repo ${IMGPKG_REGISTRY_HOSTNAME_1}/$INSTALL_REPO
 
 for cluster in "${clusters[@]}" ; do
+
+    kubectl config use-context $cluster
+
     # 6. INSTALL TAP WITH CLI
     echo
     echo "<<< INSTALLING TAP WITH CLI >>>"
@@ -247,6 +252,8 @@ for cluster in "${clusters[@]}" ; do
     tanzu package repository get tanzu-tap-repository --namespace tap-install
 done
 
+kubectl config use-context $tap_view
+
 
 #download sample app code
 rm -rf tanzu-java-web-app
@@ -254,5 +261,13 @@ git clone https://github.com/nycpivot/tanzu-java-web-app
 
 
 #INSTALL OOTB SUPPLY CHAIN - BASIC
-bash $HOME/tap-workshop-aws-any/multi-profile/cli/supply-chain/01-ootb-basic.sh
+#bash $HOME/tap-workshop-aws-any/multi-profile/cli/supply-chain/01-ootb-basic-view.sh
+#bash $HOME/tap-workshop-aws-any/multi-profile/cli/supply-chain/01-ootb-basic-build.sh
+#bash $HOME/tap-workshop-aws-any/multi-profile/cli/supply-chain/01-ootb-basic-run.sh
+#bash $HOME/tap-workshop-aws-any/multi-profile/cli/supply-chain/01-ootb-basic-iterate.sh
 
+echo
+echo "TAP-GUI: " https://tap-gui.$VIEW_DOMAIN
+echo
+echo "HAPPY TAP'ING"
+echo

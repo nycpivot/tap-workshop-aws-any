@@ -62,9 +62,3 @@ scanning:
 EOF
 
 tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION --values-file tap-values-build.yaml -n tap-install
-
-echo
-echo "TAP-GUI: " https://tap-gui.$VIEW_DOMAIN
-echo
-echo "HAPPY TAP'ING"
-echo

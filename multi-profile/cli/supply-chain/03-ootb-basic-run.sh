@@ -50,9 +50,3 @@ excluded_packages:
 EOF
 
 tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION --values-file tap-values-run.yaml -n tap-install --poll-timeout 30m0s
-
-echo
-echo "TAP-GUI: " https://tap-gui.$RUN_DOMAIN
-echo
-echo "HAPPY TAP'ING"
-echo
