@@ -86,7 +86,7 @@ pe "tanzu apps workload list -n $namespace"
 echo
 
 pe "tanzu apps workload get $app_name -n $namespace"
-echo
+echo 
 
 echo "APP URL: " https://$app_name.$namespace.full.tap.nycpivot.com
 echo
