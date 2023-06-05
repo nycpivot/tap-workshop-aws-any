@@ -40,3 +40,7 @@ aws cloudformation delete-stack --stack-name tap-multicluster-stack --region $AW
 aws cloudformation wait stack-delete-complete --stack-name tap-multicluster-stack --region $AWS_REGION
 
 rm .kube/config
+
+rm -rf $HOME/tanzu
+rm -rf $HOME/tanzu-cluster-essentials
+rm -rf $HOME/tanzu-java-web-app

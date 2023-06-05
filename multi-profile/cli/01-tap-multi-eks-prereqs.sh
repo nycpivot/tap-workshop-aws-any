@@ -69,19 +69,6 @@ for cluster in "${clusters[@]}" ; do
 
     rolename=${cluster}-csi-driver-role
 
-    aws iam detach-role-policy \
-      --role-name ${rolename} \
-      --policy-arn arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy
-      
-    aws iam delete-role \
-      --role-name ${rolename}
-
-    #https://docs.aws.amazon.com/eks/latest/userguide/managing-ebs-csi.html
-    #INSTALL CSI DRIVER PLUGIN (REQUIRED FOR K8S 1.23)
-    aws eks delete-addon \
-      --cluster-name $cluster \
-      --addon-name aws-ebs-csi-driver
-
     aws eks create-addon \
       --cluster-name $cluster \
       --addon-name aws-ebs-csi-driver \
@@ -106,7 +93,6 @@ for cluster in "${clusters[@]}" ; do
       eksctl utils associate-iam-oidc-provider --cluster $cluster --approve
     fi
 
-rm aws-ebs-csi-driver-trust-policy.json
 cat <<EOF | tee aws-ebs-csi-driver-trust-policy.json
 {
   "Version": "2012-10-17",
@@ -141,6 +127,8 @@ EOF
     kubectl annotate serviceaccount ebs-csi-controller-sa \
         eks.amazonaws.com/role-arn=arn:aws:iam::$AWS_ACCOUNT_ID:role/$rolename \
         -n kube-system --overwrite
+
+    rm aws-ebs-csi-driver-trust-policy.json
     
     echo
 
