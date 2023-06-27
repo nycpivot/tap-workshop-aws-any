@@ -35,7 +35,7 @@ echo
 sleep 5
 
   aws cloudformation create-stack --stack-name tap-multicluster-stack --region $AWS_REGION \
-      --template-body file:///home/ubuntu/tap-workshop-aws-any/multi-profile/config/tap-multicluster-stack-$AWS_REGION.yaml
+      --template-body file:///home/ubuntu/tap-workshop-aws-any/multi-profile/config/tap-multicluster-stack.yaml
   aws cloudformation wait stack-create-complete --stack-name tap-multicluster-stack --region $AWS_REGION
 
 arn=arn:aws:eks:$AWS_REGION:$AWS_ACCOUNT_ID:cluster
@@ -254,8 +254,3 @@ git clone https://github.com/nycpivot/tanzu-java-web-app
 #bash $HOME/tap-workshop-aws-any/multi-profile/cli/supply-chain/01-ootb-basic-run.sh
 #bash $HOME/tap-workshop-aws-any/multi-profile/cli/supply-chain/01-ootb-basic-iterate.sh
 
-echo
-echo "TAP-GUI: " https://tap-gui.$VIEW_DOMAIN
-echo
-echo "HAPPY TAP'ING"
-echo
