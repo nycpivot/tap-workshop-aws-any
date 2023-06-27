@@ -34,7 +34,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: ${AWS::Region}b
+      AvailabilityZone: us-east-1b
       CidrBlock: 10.0.0.0/24
       MapPublicIpOnLaunch: true
       Tags:
@@ -44,7 +44,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: ${AWS::Region}c
+      AvailabilityZone: us-east-1c
       CidrBlock: 10.0.1.0/24
       MapPublicIpOnLaunch: true
       Tags:

@@ -35,7 +35,7 @@ echo
 sleep 5
 
   aws cloudformation create-stack --stack-name tap-multicluster-stack --region $AWS_REGION \
-      --template-body file:///home/ubuntu/tap-workshop-aws-any/multi-profile/config/tap-multicluster-stack.yaml
+      --template-body file:///home/ubuntu/tap-workshop-aws-any/multi-profile/config/tap-multicluster-stack-${AWS_REGION}.yaml
   aws cloudformation wait stack-create-complete --stack-name tap-multicluster-stack --region $AWS_REGION
 
 arn=arn:aws:eks:$AWS_REGION:$AWS_ACCOUNT_ID:cluster
