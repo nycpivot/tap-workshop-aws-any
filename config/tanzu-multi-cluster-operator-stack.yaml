@@ -28,7 +28,7 @@ Resources:
         - !Sub "tanzu-operations-${AWS::Region}"
       Tags:
         - Key: "Name"
-          Value: !Sub "tanzu-operations-${AWS::Region}"
+          Value: !Sub "tanzu-multi-cluster-operator"
 Outputs:
   InstanceId:
     Value: !Ref OperatorInstance
