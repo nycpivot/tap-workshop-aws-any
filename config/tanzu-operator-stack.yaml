@@ -9,6 +9,17 @@ Mappings:
       Id: "ami-01f87c43e618bf8f0"
     us-west-2:
       Id: "ami-017fecd1353bcc96e"
+Parameters:
+  OperatorName:
+    Type: String
+    Default: tanzu-operator
+    AllowedValues:
+      - tanzu-operator
+      - tanzu-operator-1
+      - tanzu-operator-2
+      - tanzu-operator-3
+      - tanzu-operator-4
+      - tanzu-operator-5
 Resources:
   OperatorInstance:
     Type: "AWS::EC2::Instance"
@@ -28,7 +39,7 @@ Resources:
         - !Sub "tanzu-operations-${AWS::Region}"
       Tags:
         - Key: "Name"
-          Value: !Sub "tanzu-multi-cluster-operator"
+          Value: !Ref OperatorName
 Outputs:
   InstanceId:
     Value: !Ref OperatorInstance
