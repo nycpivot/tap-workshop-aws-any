@@ -280,4 +280,7 @@ echo $change_batch_filename.json
 aws route53 change-resource-record-sets --hosted-zone-id $hosted_zone_id --change-batch file:///$HOME/$change_batch_filename.json
 
 echo
-echo "BASIC VIEW DONE"
+echo "TAP-GUI: " https://tap-gui.${VIEW_DOMAIN}
+echo
+echo "HAPPY TAP'ING"
+echo
